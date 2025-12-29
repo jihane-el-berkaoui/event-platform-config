@@ -9,11 +9,11 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false  # ← CHANGER À false !
           lower-case-service-id: true
       routes:
         - id: event-service
-          uri: lb://event-service
+          uri: lb://event-service  # Peut garder lb://
           predicates:
             - Path=/api/events/**
           filters:
