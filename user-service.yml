@@ -10,3 +10,11 @@ spring:
     username: postgres
     password: jihane123
     driver-class-name: org.postgresql.Driver
+  eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    enabled: true  # ← AJOUTEZ
+    
+  instance:
+    prefer-ip-address: true
