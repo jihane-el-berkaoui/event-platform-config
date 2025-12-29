@@ -5,6 +5,7 @@ spring:
   application:
     name: booking-service
   
+    
   datasource:
     url: jdbc:postgresql://localhost:5433/booking_db
     username: postgres
@@ -16,6 +17,7 @@ spring:
     port: 5672
     username: guest
     password: guest
+    enabled: false
 
 # Resilience4j pour Feign Client
 resilience4j:
