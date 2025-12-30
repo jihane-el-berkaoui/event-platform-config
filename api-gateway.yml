@@ -13,42 +13,44 @@ spring:
           lower-case-service-id: true
       routes:
         - id: event-service
-          uri: lb://EVENT-SERVICE  # ← EN MAJUSCULES
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/api/events/**
           filters:
+            - RewritePath=/api/events/(?<segment>.*), /$\{segment}  # ← IMPORTANT !
             - name: CircuitBreaker
               args:
                 name: eventService
                 fallbackUri: forward:/fallback/events
         
         - id: booking-service
-          uri: lb://BOOKING-SERVICE  # ← EN MAJUSCULES
+          uri: lb://BOOKING-SERVICE
           predicates:
             - Path=/api/bookings/**
           filters:
+            - RewritePath=/api/bookings/(?<segment>.*), /$\{segment}  # ← IMPORTANT !
             - name: CircuitBreaker
               args:
                 name: bookingService
                 fallbackUri: forward:/fallback/bookings
         
         - id: user-service
-          uri: lb://USER-SERVICE  # ← EN MAJUSCULES
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/api/users/**
           filters:
+            - RewritePath=/api/users/(?<segment>.*), /$\{segment}  # ← IMPORTANT !
             - name: CircuitBreaker
               args:
                 name: userService
                 fallbackUri: forward:/fallback/users
-      globalcors:  # ← AJOUTER CETTE SECTION
+      globalcors:
         cors-configurations:
           '[/**]':
             allowed-origins: "http://localhost:3000"
-            allowed-methods: "*"
+            allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
             allowed-headers: "*"
             allow-credentials: true
-            max-age: 3600
 
 # Circuit Breaker configuration
 resilience4j:
@@ -66,3 +68,16 @@ resilience4j:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
+
+# AJOUTER CETTE SECTION POUR EUREKA
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    enabled: true
+    fetch-registry: true
+    register-with-eureka: true
+    
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
