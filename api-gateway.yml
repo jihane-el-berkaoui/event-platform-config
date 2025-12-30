@@ -22,35 +22,26 @@ spring:
             allow-credentials: true
       
       routes:
-        - id: event-service
-          uri: http://localhost:8081  # ← URL DIRECTE pour être sûr
+        - id: user-service
+          uri: http://localhost:8083  # ← User Service port 8083
           predicates:
-            - Path=/api/events/**
+            - Path=/api/users/**      # ← UserController a @RequestMapping("/api/users")
           filters:
+            # PAS de RewritePath !
             - name: CircuitBreaker
               args:
-                name: eventService
-                fallbackUri: forward:/fallback/events
+                name: userService
+                fallbackUri: forward:/fallback/users
         
         - id: booking-service
-          uri: http://localhost:8082
+          uri: http://localhost:8082  # ← Booking Service port 8082
           predicates:
-            - Path=/api/bookings/**
+            - Path=/api/bookings/**   # ← BookingController a @RequestMapping("/api/bookings")
           filters:
             - name: CircuitBreaker
               args:
                 name: bookingService
                 fallbackUri: forward:/fallback/bookings
-        
-        - id: user-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: userService
-                fallbackUri: forward:/fallback/users
 
 # Circuit Breaker configuration
 resilience4j:
