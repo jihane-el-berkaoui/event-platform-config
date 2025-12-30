@@ -15,6 +15,14 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+  # ← AJOUTER CORS pour tous les services
+  web:
+    cors:
+      allowed-origins: "http://localhost:3000"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
+
 # Configuration EUREKA commune
 eureka:
   client:

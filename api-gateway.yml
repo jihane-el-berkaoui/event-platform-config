@@ -9,11 +9,11 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: false  # ← CHANGER À false !
+          enabled: false
           lower-case-service-id: true
       routes:
         - id: event-service
-          uri: lb://event-service  # Peut garder lb://
+          uri: lb://EVENT-SERVICE  # ← EN MAJUSCULES
           predicates:
             - Path=/api/events/**
           filters:
@@ -23,7 +23,7 @@ spring:
                 fallbackUri: forward:/fallback/events
         
         - id: booking-service
-          uri: lb://booking-service
+          uri: lb://BOOKING-SERVICE  # ← EN MAJUSCULES
           predicates:
             - Path=/api/bookings/**
           filters:
@@ -33,7 +33,7 @@ spring:
                 fallbackUri: forward:/fallback/bookings
         
         - id: user-service
-          uri: lb://user-service
+          uri: lb://USER-SERVICE  # ← EN MAJUSCULES
           predicates:
             - Path=/api/users/**
           filters:
@@ -41,6 +41,14 @@ spring:
               args:
                 name: userService
                 fallbackUri: forward:/fallback/users
+      globalcors:  # ← AJOUTER CETTE SECTION
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:3000"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
 
 # Circuit Breaker configuration
 resilience4j:
