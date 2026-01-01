@@ -9,7 +9,8 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: false
+          enabled: true  # ← CHANGER À true POUR SERVICE DISCOVERY
+          lower-case-service-id: true
       
       globalcors:
         cors-configurations:
@@ -17,15 +18,24 @@ spring:
             allowed-origins: 
               - "http://localhost:3000"
               - "http://localhost:5173"
-            allowed-methods: "*"
+            allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
             allowed-headers: "*"
             allow-credentials: true
+            max-age: 3600
       
-      spring:
-  
       routes:
+        # Route pour la page d'accueil de l'API Gateway
+        - id: gateway-home
+          uri: http://localhost:8080
+          predicates:
+            - Path=/
+          filters:
+            - SetResponseHeader=Content-Type,application/json
+            - SetResponseBody={"service": "API Gateway", "status": "UP", "message": "Event Platform Microservices", "timestamp": "{{#now}}"}
+        
+        # User Service
         - id: user-service
-          uri: lb://user-service  # ← lb:// pour load balancing via Eureka
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
@@ -33,9 +43,11 @@ spring:
               args:
                 name: userService
                 fallbackUri: forward:/fallback/users
+            - RewritePath=/api/(?<segment>.*), /$\{segment}  # ← ENLEVER /api PREFIX
         
+        # Booking Service
         - id: booking-service
-          uri: lb://booking-service  # ← lb://
+          uri: lb://booking-service
           predicates:
             - Path=/api/bookings/**
           filters:
@@ -43,9 +55,11 @@ spring:
               args:
                 name: bookingService
                 fallbackUri: forward:/fallback/bookings
+            - RewritePath=/api/(?<segment>.*), /$\{segment}  # ← ENLEVER /api PREFIX
         
-        - id: event-service  # ← AJOUTER CE ROUTE
-          uri: lb://event-service  # ← lb://
+        # Event Service
+        - id: event-service
+          uri: lb://event-service
           predicates:
             - Path=/api/events/**
           filters:
@@ -53,20 +67,63 @@ spring:
               args:
                 name: eventService
                 fallbackUri: forward:/fallback/events
+            - RewritePath=/api/(?<segment>.*), /$\{segment}  # ← ENLEVER /api PREFIX
+        
+        # Fallback routes
+        - id: fallback-routes
+          uri: http://localhost:8080
+          predicates:
+            - Path=/fallback/**
 
 # Circuit Breaker configuration
 resilience4j:
   circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 5s
+        failure-rate-threshold: 50
+        automatic-transition-from-open-to-half-open-enabled: true
     instances:
       eventService:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        base-config: default
       bookingService:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        base-config: default
       userService:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        base-config: default
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    enabled: true
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+    org.springframework.web: DEBUG
