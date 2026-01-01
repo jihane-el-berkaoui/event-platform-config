@@ -38,6 +38,12 @@ resilience4j:
         wait-duration-in-open-state: 10s
         failure-rate-threshold: 50
         automatic-transition-from-open-to-half-open-enabled: true
+  
+  retry:
+    instances:
+      eventService:
+        max-attempts: 3
+        wait-duration: 1s
 
 feign:
   circuitbreaker:
@@ -47,6 +53,7 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 5000
+        loggerLevel: basic
 
 eureka:
   client:
