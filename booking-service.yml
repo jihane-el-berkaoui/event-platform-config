@@ -16,7 +16,7 @@ spring:
     port: 5672
     username: guest
     password: guest
-    enabled: false
+    enabled: true
 
   jpa:  # ← AJOUTER CETTE SECTION
     hibernate:
