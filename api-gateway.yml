@@ -1,3 +1,4 @@
+# api-gateway.yml dans GitHub
 server:
   port: 8080
 
@@ -21,10 +22,8 @@ spring:
             allowed-headers: "*"
             allow-credentials: true
       
-      spring:
-  
       routes:
-        # AJOUTEZ CETTE ROUTE EN PREMIER (IMPORTANT)
+        # ROUTE AUTH - AJOUTÉE
         - id: auth-service
           uri: lb://user-service
           predicates:
@@ -32,7 +31,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: userService  # Utilisez userService ou créez authService
+                name: userService
                 fallbackUri: forward:/fallback/auth
         
         - id: user-service
@@ -46,7 +45,7 @@ spring:
                 fallbackUri: forward:/fallback/users
         
         - id: booking-service
-          uri: lb://booking-service  # ← lb://
+          uri: lb://booking-service
           predicates:
             - Path=/api/bookings/**
           filters:
@@ -55,8 +54,8 @@ spring:
                 name: bookingService
                 fallbackUri: forward:/fallback/bookings
         
-        - id: event-service  # ← AJOUTER CE ROUTE
-          uri: lb://event-service  # ← lb://
+        - id: event-service
+          uri: lb://event-service
           predicates:
             - Path=/api/events/**
           filters:
@@ -65,7 +64,6 @@ spring:
                 name: eventService
                 fallbackUri: forward:/fallback/events
 
-# Circuit Breaker configuration
 resilience4j:
   circuitbreaker:
     instances:
