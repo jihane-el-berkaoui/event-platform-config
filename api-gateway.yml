@@ -24,8 +24,19 @@ spring:
       spring:
   
       routes:
+        # AJOUTEZ CETTE ROUTE EN PREMIER (IMPORTANT)
+        - id: auth-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userService  # Utilisez userService ou créez authService
+                fallbackUri: forward:/fallback/auth
+        
         - id: user-service
-          uri: lb://user-service  # ← lb:// pour load balancing via Eureka
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
