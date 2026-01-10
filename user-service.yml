@@ -19,7 +19,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   
-  # ✅ SECTION EMAIL SÉCURISÉE
+
   mail:
     host: ${EMAIL_HOST:smtp.gmail.com}
     port: ${EMAIL_PORT:587}
@@ -30,7 +30,10 @@ spring:
         smtp:
           auth: ${EMAIL_SMTP_AUTH:true}
           starttls:
-            enabled: ${EMAIL_STARTTLS_ENABLED:true}
+            enable: true  # ⬅️ 'enable' pas 'enabled'
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
     default-encoding: UTF-8
 
 eureka:
