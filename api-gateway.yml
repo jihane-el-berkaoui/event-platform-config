@@ -23,35 +23,29 @@ spring:
             max-age: 3600
       
       routes:
-        # ROUTE AUTH - CORRIGÉE
+        # ROUTE AUTH - AVEC RETRY au lieu de CircuitBreaker pour POST
         - id: auth-service
           uri: http://localhost:8083
           predicates:
             - Path=/api/auth/**
-            - Method=POST,GET,OPTIONS  # Spécifier les méthodes
           filters:
-            # Circuit Breaker REQUIS pour l'exigence #2
+            # Utilisez Retry pour les POST (préserve la méthode)
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                methods: POST,GET
+                series: SERVER_ERROR
+            # Fallback configuré
+            - name: FallbackHeaders
+              args:
+                executionExceptionTypeHeaderName: Test-Header
+            # CircuitBreaker seulement pour monitor, pas pour modifier
             - name: CircuitBreaker
               args:
                 name: userService
                 fallbackUri: forward:/fallback/auth
-                statusCodes: "500,502,503,504,404"
-            # Headers pour assurer la compatibilité
-            - AddRequestHeader=Accept, application/json
-            - AddRequestHeader=Content-Type, application/json;charset=UTF-8
-            - RemoveRequestHeader=Host  # Important pour éviter les conflits
-        
-        # Route spécifique pour l'inscription
-        - id: auth-register
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/auth/register
-            - Method=POST
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: userServiceRegister
-                fallbackUri: forward:/fallback/auth
+                statusCodes: "500,502,503,504"
         
         # Route pour les autres endpoints auth
         - id: auth-other
