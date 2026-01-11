@@ -20,142 +20,87 @@ spring:
             allowed-methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH"
             allowed-headers: "*"
             allow-credentials: true
-            max-age: 3600
       
       routes:
-        # ROUTE AUTH - CORRIGÉE
+        # ROUTE AUTH SANS CIRCUIT BREAKER TEMPORAIREMENT
+        - id: auth-no-cb
+          uri: http://localhost:8083
+          predicates:
+            - Path=/no-cb/api/auth/**
+          filters:
+            - RewritePath=/no-cb/api/auth/(?<segment>.*), /api/auth/$\{segment}
+        
+        # ROUTE AUTH avec Circuit Breaker modifié
         - id: auth-service
           uri: http://localhost:8083
           predicates:
             - Path=/api/auth/**
-            - Method=POST,GET,OPTIONS  # Spécifier les méthodes
           filters:
-            # Circuit Breaker REQUIS pour l'exigence #2
+            # Circuit Breaker avec configuration spécifique
             - name: CircuitBreaker
               args:
                 name: userService
                 fallbackUri: forward:/fallback/auth
-                statusCodes: "500,502,503,504,404"
-            # Headers pour assurer la compatibilité
-            - AddRequestHeader=Accept, application/json
-            - AddRequestHeader=Content-Type, application/json;charset=UTF-8
-            - RemoveRequestHeader=Host  # Important pour éviter les conflits
+                statusCodes: "5xx"
         
-        # Route spécifique pour l'inscription
-        - id: auth-register
+        # ROUTE SPÉCIFIQUE pour register (POST seulement)
+        - id: auth-register-post
           uri: http://localhost:8083
           predicates:
-            - Path=/api/auth/register
+            - Path=/post/api/auth/register
             - Method=POST
           filters:
-            - name: CircuitBreaker
-              args:
-                name: userServiceRegister
-                fallbackUri: forward:/fallback/auth
-        
-        # Route pour les autres endpoints auth
-        - id: auth-other
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/auth/**
-            - Method=GET,OPTIONS,PUT,DELETE
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: userService
-                fallbackUri: forward:/fallback/auth
+            - RewritePath=/post/api/auth/register, /api/auth/register
         
         # ROUTE USER-SERVICE
         - id: user-service
           uri: http://localhost:8083
           predicates:
             - Path=/api/users/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: userService
-                fallbackUri: forward:/fallback/users
         
         # ROUTE EVENT-SERVICE
         - id: event-service
-          uri: lb://event-service  # Utilisation de service discovery
+          uri: lb://event-service
           predicates:
             - Path=/api/events/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: eventService
-                fallbackUri: forward:/fallback/events
         
         # ROUTE BOOKING-SERVICE
         - id: booking-service
-          uri: lb://booking-service  # Utilisation de service discovery
+          uri: lb://booking-service
           predicates:
             - Path=/api/bookings/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: bookingService
-                fallbackUri: forward:/fallback/bookings
 
-# Service Discovery REQUIS pour l'exigence #3
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    enabled: true
-    fetch-registry: true
-    register-with-eureka: true
-    healthcheck:
-      enabled: true
-  instance:
-    hostname: localhost
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
-    instance-id: ${spring.application.name}:${server.port}
-
-# Circuit Breaker REQUIS pour l'exigence #2
+# Circuit Breaker config
 resilience4j:
   circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - org.springframework.web.client.HttpClientErrorException
     instances:
       userService:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
-        automatic-transition-from-open-to-half-open-enabled: true
-      userServiceRegister:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 5s
-      eventService:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-      bookingService:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        baseConfig: default
 
-# Actuator pour monitoring REQUIS
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,metrics,prometheus,circuitbreakers
+        include: "*"
   endpoint:
-    gateway:
-      enabled: true
     health:
       show-details: always
-    circuitbreakers:
-      enabled: true
 
-# Logging pour debugging
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     reactor.netty.http.client: DEBUG
-    io.github.resilience4j: DEBUG
-    org.springframework.cloud.circuitbreaker: DEBUG
+    io.github.resilience4j.circuitbreaker: DEBUG
