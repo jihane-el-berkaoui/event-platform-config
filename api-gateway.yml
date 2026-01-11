@@ -105,15 +105,19 @@ resilience4j:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
 
-# Actuator endpoints
+# Actuator endpoints - CORRIGEZ CECI
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,gateway,metrics,prometheus  # ← AJOUTEZ "gateway"
   endpoint:
+    gateway:
+      enabled: true  # ← AJOUTEZ CETTE LIGNE
     health:
       show-details: always
+    routes:
+      enabled: true  # ← OPTIONNEL: pour voir les routes
 
 # Logging
 logging:
