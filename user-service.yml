@@ -5,6 +5,9 @@ spring:
   application:
     name: user-service
   
+  config:
+    import: optional:configserver:http://localhost:8888
+  
   datasource:
     url: jdbc:postgresql://localhost:5433/user_db
     username: postgres
@@ -19,23 +22,23 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   
-
   mail:
-    host: ${EMAIL_HOST:smtp.gmail.com}
-    port: ${EMAIL_PORT:587}
-    username: ${EMAIL_USERNAME:}
-    password: ${EMAIL_PASSWORD:}
+    host: smtp.gmail.com
+    port: 587
+    username: iot22926@gmail.com
+    password: xthqghulkqockwnk
     properties:
       mail:
         smtp:
-          auth: ${EMAIL_SMTP_AUTH:true}
+          auth: true
           starttls:
-            enable: true  # ⬅️ 'enable' pas 'enabled'
+            enable: true
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
     default-encoding: UTF-8
 
+# Eureka Configuration - IMPORTANT pour la Gateway
 eureka:
   client:
     service-url:
@@ -43,10 +46,15 @@ eureka:
     enabled: true
     fetch-registry: true
     register-with-eureka: true
+    healthcheck:
+      enabled: true
   
   instance:
+    hostname: localhost
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 
 app:
   frontend:
