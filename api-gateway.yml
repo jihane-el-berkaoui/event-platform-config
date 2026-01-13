@@ -24,7 +24,15 @@ spring:
           predicates:
             - Path=/api/auth/**, /api/users/**
           # PAS de filters pour l'instant
-        
+        - id: checkin-service
+          uri: lb://CHECKIN-SERVICE
+          predicates:
+            - Path=/api/qr-codes/**, /api/checkin/**
+
+        - id: refund-service
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/refunds/**
         # Route EVENT-SERVICE
         - id: event-service
           uri: lb://EVENT-SERVICE
