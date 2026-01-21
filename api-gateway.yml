@@ -18,12 +18,10 @@ spring:
           max-idle-time: 60s
       
       routes:
-        # ROUTE SIMPLE SANS FILTERS COMPLEXES
         - id: user-service-all
-          uri: lb://USER-SERVICE  # ou http://localhost:8083
+          uri: lb://USER-SERVICE  
           predicates:
             - Path=/api/auth/**, /api/users/**
-          # PAS de filters pour l'instant
         - id: checkin-service
           uri: lb://CHECKIN-SERVICE
           predicates:
@@ -33,13 +31,11 @@ spring:
           uri: lb://BOOKING-SERVICE
           predicates:
             - Path=/api/refunds/**
-        # Route EVENT-SERVICE
         - id: event-service
           uri: lb://EVENT-SERVICE
           predicates:
             - Path=/api/events/**
         
-        # Route BOOKING-SERVICE
         - id: booking-service
           uri: lb://BOOKING-SERVICE
           predicates:

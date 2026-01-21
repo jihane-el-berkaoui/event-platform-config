@@ -30,7 +30,7 @@ spring:
         smtp:
           auth: ${EMAIL_SMTP_AUTH:true}
           starttls:
-            enable: true  # ⬅️ 'enable' pas 'enabled'
+            enable: true  
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000

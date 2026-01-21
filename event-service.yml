@@ -21,7 +21,6 @@ spring:
     password: guest
     connection-timeout: 5000
 
-# ← AJOUTER CETTE SECTION
 eureka:
   client:
     service-url:
@@ -34,7 +33,6 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
-# Désactiver health check RabbitMQ si non connecté
 management:
   health:
     rabbit:

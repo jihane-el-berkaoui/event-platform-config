@@ -1,4 +1,3 @@
-# Configuration SPRING commune à tous les services
 spring:
   jackson:
     date-format: com.fasterxml.jackson.databind.util.ISO8601DateFormat
@@ -15,7 +14,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  # ← AJOUTER CORS pour tous les services
   web:
     cors:
       allowed-origins: "http://localhost:3000"
@@ -23,7 +21,6 @@ spring:
       allowed-headers: "*"
       allow-credentials: true
 
-# Configuration EUREKA commune
 eureka:
   client:
     fetch-registry: true
@@ -33,7 +30,6 @@ eureka:
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
 
-# Actuator endpoints
 management:
   endpoints:
     web:
@@ -43,7 +39,6 @@ management:
     health:
       show-details: always
 
-# Logging
 logging:
   level:
     com.eventplatform: DEBUG
